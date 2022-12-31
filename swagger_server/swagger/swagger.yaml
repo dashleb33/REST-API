@@ -1,0 +1,238 @@
+openapi: 3.0.0
+info:
+  title: REST-API спецификация информационной системы районной поликлиники. Учет льготных
+    лекарств.
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  version: 0.0.3
+servers:
+- url: http://localhost:1234/api
+  description: Dev server
+paths:
+  /drugs:
+    get:
+      tags:
+      - drug
+      summary: Метод получения списка льготных лекарств
+      description: "Метод предназначен для получения списка всех льготных лекарств\
+        , сохраненных в БД."
+      operationId: getdrugs
+      responses:
+        "200":
+          description: Список льготных лекарств
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/drug'
+                x-content-type: application/json;charset=UTF-8
+      x-openapi-router-controller: swagger_server.controllers.drug_controller
+    post:
+      tags:
+      - drug
+      summary: Метод добавления нового льготного лекарства в каталог
+      description: Метод предназначен для сохранения в БД данных по новому льготному
+        лекарству.
+      operationId: createdrug
+      requestBody:
+        content:
+          application/json;charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/drug'
+        required: true
+      responses:
+        "200":
+          description: Подтверждение успешного сохранения
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/drug'
+        "400":
+          description: Некорректные входные данные. Возвращает список атрибутов с
+            ошибками
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  type: string
+                x-content-type: application/json;charset=UTF-8
+      x-openapi-router-controller: swagger_server.controllers.drug_controller
+  /drugs/{id}:
+    get:
+      tags:
+      - drug
+      summary: Метод получения льготного лекарства по идентификатору
+      operationId: getdrug_by_id
+      parameters:
+      - name: id
+        in: path
+        description: Идентификатор льготного лекарства
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: АТХ_R06AX13
+      responses:
+        "200":
+          description: Льготное лекарство
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/drug'
+        default:
+          description: Любая неожиданная ошибка
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-openapi-router-controller: swagger_server.controllers.drug_controller
+    put:
+      tags:
+      - drug
+      summary: Метод обновления льготного лекарства в каталоге
+      description: Метод предназначен для обновления в БД данных по имеющемуся льготнму
+        лекарству.
+      operationId: updatedrug
+      parameters:
+      - name: id
+        in: path
+        description: Идентификатор льготного лекарства
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: АТХ_R06AX13
+      requestBody:
+        content:
+          application/json;charset=UTF-8:
+            schema:
+              $ref: '#/components/schemas/drug'
+        required: true
+      responses:
+        "200":
+          description: Подтверждение успешного обновления
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                $ref: '#/components/schemas/drug'
+        "400":
+          description: Некорректные входные данные. Возвращает список атрибутов с
+            ошибками
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                x-content-type: application/json
+        default:
+          description: Любая неожиданная ошибка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-openapi-router-controller: swagger_server.controllers.drug_controller
+    delete:
+      tags:
+      - drug
+      summary: Метод удаления льготного лекарства по идентификатору
+      operationId: deletedrug_by_id
+      parameters:
+      - name: id
+        in: path
+        description: Идентификатор льготного лекарства
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+        example: АТХ_R06AX13
+      responses:
+        "200":
+          description: Успешное удаление
+          content: {}
+      x-openapi-router-controller: swagger_server.controllers.drug_controller
+  /drugs/expiration/{expiration}:
+    get:
+      tags:
+      - drug
+      summary: Метод получения льготных лекарств по сроку годности
+      operationId: getdrug_byexpiration
+      parameters:
+      - name: expiration
+        in: path
+        description: Срок годности льготного лекарства
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          enum:
+          - new
+          - half
+          - bad
+      responses:
+        "200":
+          description: Льготное лекарство
+          content:
+            application/json;charset=UTF-8:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/drug'
+                x-content-type: application/json;charset=UTF-8
+      x-openapi-router-controller: swagger_server.controllers.drug_controller
+components:
+  schemas:
+    drug:
+      required:
+      - expiration
+      - name
+      type: object
+      properties:
+        drug_id:
+          type: string
+          example: АТХ_R06AX13
+        name:
+          type: string
+          description: Название льготного лекарства
+          example: Loratadine
+        expiration:
+          type: string
+          description: Группа по сроку годности льготного лекарства
+          example: new
+          enum:
+          - new
+          - half
+          - bad
+        note:
+          type: string
+          description: "Описание, пометки"
+          example: Поступило от Благотворительного Фонда
+        created_at:
+          type: string
+          description: Дата и время поступления льготного лекарства в каталог
+          example: 2022-07-01T15:00:00+01
+      example:
+        note: Поступило от Благотворительного Фонда
+        drug_id: АТХ_R06AX13
+        name: Loratadine
+        created_at: 2022-07-01T15:00:00+01
+        expiration: new
+    Error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+
